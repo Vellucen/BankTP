@@ -4,20 +4,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import java.io.Serializable;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
-@Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class card implements Serializable {
+@AllArgsConstructor
+public class CardInput {
 
-    @Id
-    private String id;
+    @Size(min = 16, max = 16)
+    @Pattern(regexp = "[0-9]+")
     private String number;
+    @Size(min = 4, max = 4)
+    @Pattern(regexp = "[0-9]+")
     private String code;
+    @Size(min = 3, max = 3)
+    @Pattern(regexp = "[0-9]+")
     private String cryptogram;
     private Double cap;
     private boolean blocked;
