@@ -1,5 +1,6 @@
 package fr.ul.miage.bank.assemblers;
 
+import fr.ul.miage.bank.boundaries.CardRepresentation;
 import fr.ul.miage.bank.entities.Card;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -19,19 +20,19 @@ public class BankCardAssembler implements RepresentationModelAssembler<Card, Ent
     public EntityModel<Card> toModel(Card card) {
         return EntityModel.of(card,
                 linkTo(methodOn(CardRepresentation.class)
-                        .getOneIntervenant(card.getId())).withSelfRel(),
-                linkTo(methodOn(CardtRepresentation.class)
-                        .getAllIntervenants()).withRel("collection"));
+                        .getOneCard(card.getId())).withSelfRel(),
+                linkTo(methodOn(CardRepresentation.class)
+                        .getAllCards()).withRel("collection"));
     }
 
     @Override
     public CollectionModel<EntityModel<Card>> toCollectionModel(Iterable<? extends Card> entities) {
-        List<EntityModel<Card>> intervenantModel = StreamSupport
+        List<EntityModel<Card>> cardModel = StreamSupport
                 .stream(entities.spliterator(), false)
                 .map(i -> toModel(i))
                 .collect(Collectors.toList());
-        return CollectionModel.of(intervenantModel,
+        return CollectionModel.of(cardModel,
                 linkTo(methodOn(CardRepresentation.class)
-                        .getAllIntervenants()).withSelfRel());
+                        .getAllCards()).withSelfRel());
     }
 }

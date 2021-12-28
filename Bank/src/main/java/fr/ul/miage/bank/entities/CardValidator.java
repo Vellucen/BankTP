@@ -1,10 +1,13 @@
 package fr.ul.miage.bank.entities;
 
+import org.springframework.stereotype.Service;
+
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validator;
 import java.util.Set;
 
+@Service
 public class CardValidator {
 
     private Validator validator;

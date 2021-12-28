@@ -1,5 +1,6 @@
 package fr.ul.miage.bank.assemblers;
 
+import fr.ul.miage.bank.boundaries.AccountRepresentation;
 import fr.ul.miage.bank.entities.Account;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -19,19 +20,19 @@ public class BankAccountAssembler implements RepresentationModelAssembler<Accoun
     public EntityModel<Account> toModel(Account account) {
         return EntityModel.of(account,
                 linkTo(methodOn(AccountRepresentation.class)
-                        .getOneIntervenant(account.getId())).withSelfRel(),
+                        .getOneAccount(account.getId())).withSelfRel(),
                 linkTo(methodOn(AccountRepresentation.class)
-                        .getAllIntervenants()).withRel("collection"));
+                        .getAllAccounts()).withRel("collection"));
     }
 
     @Override
     public CollectionModel<EntityModel<Account>> toCollectionModel(Iterable<? extends Account> entities) {
-        List<EntityModel<Account>> intervenantModel = StreamSupport
+        List<EntityModel<Account>> accountModel = StreamSupport
                 .stream(entities.spliterator(), false)
                 .map(i -> toModel(i))
                 .collect(Collectors.toList());
-        return CollectionModel.of(intervenantModel,
+        return CollectionModel.of(accountModel,
                 linkTo(methodOn(AccountRepresentation.class)
-                        .getAllIntervenants()).withSelfRel());
+                        .getAllAccounts()).withSelfRel());
     }
 }
