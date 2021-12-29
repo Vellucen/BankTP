@@ -12,6 +12,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 public class CardInput {
 
+    private Account account;
     @Size(min = 16, max = 16)
     @Pattern(regexp = "[0-9]+")
     private String number;

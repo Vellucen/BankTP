@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -17,6 +19,12 @@ public class Operation implements Serializable {
 
     @Id
     private String id;
+    @ManyToOne
+    @JoinColumn(name = "id_account")
+    private Account account;
+    @ManyToOne
+    @JoinColumn(name = "id_card")
+    private Card card;
     private String wording;
     private String category;
     private Double amount;

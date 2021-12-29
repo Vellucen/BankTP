@@ -59,6 +59,8 @@ public class OperationRepresentation {
     public ResponseEntity<?> saveOperation(@RequestBody @Valid OperationInput operation)  {
         Operation operation2Save = new Operation(
                 UUID.randomUUID().toString(),
+                operation.getAccount(),
+                operation.getCard(),
                 operation.getWording(),
                 operation.getCategory(),
                 operation.getAmount(),
@@ -113,7 +115,7 @@ public class OperationRepresentation {
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, operation, v);
             });
-            validator.validate(new OperationInput(operation.getWording(), operation.getCategory(),
+            validator.validate(new OperationInput(operation.getAccount(), operation.getCard(), operation.getWording(), operation.getCategory(),
                     operation.getAmount(), operation.getRate(), operation.getDate(), operation.getCreditoraccount(), operation.getCountry()));
             operation.setId(operationId);
             or.save(operation);

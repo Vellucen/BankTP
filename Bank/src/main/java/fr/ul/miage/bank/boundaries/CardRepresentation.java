@@ -61,6 +61,7 @@ public class CardRepresentation {
     public ResponseEntity<?> saveCard(@RequestBody @Valid CardInput card)  {
         Card card2Save = new Card(
                 UUID.randomUUID().toString(),
+                card.getAccount(),
                 card.getNumber(),
                 card.getCode(),
                 card.getCryptogram(),
@@ -116,7 +117,7 @@ public class CardRepresentation {
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, card, v);
             });
-            validator.validate(new CardInput(card.getNumber(), card.getCode(), card.getCryptogram(),
+            validator.validate(new CardInput(card.getAccount(), card.getNumber(), card.getCode(), card.getCryptogram(),
                     card.getCap(), card.isBlocked(), card.isLocation(), card.isContactless(), card.isVirtual()));
             card.setId(cardId);
             cr.save(card);
