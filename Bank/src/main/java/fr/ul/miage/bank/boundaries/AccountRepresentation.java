@@ -35,20 +35,16 @@ public class AccountRepresentation {
     private final AccountResource ar;
     private final BankAccountAssembler assembler;
     private final AccountValidator validator;
+    private final CardRepresentation cards;
 
-    public AccountRepresentation(AccountResource ar, BankAccountAssembler assembler, AccountValidator validator) {
+    public AccountRepresentation(AccountResource ar, BankAccountAssembler assembler, AccountValidator validator, CardRepresentation cards) {
         this.ar = ar;
         this.assembler = assembler;
         this.validator = validator;
+        this.cards = cards;
     }
 
-    // GET all
-    @GetMapping
-    public ResponseEntity<?> getAllAccounts() {
-        return ResponseEntity.ok(assembler.toCollectionModel(ar.findAll()));
-    }
-
-    // GET one
+    // GET one ACCOUNT
     @GetMapping(value="/{accountId}")
     public ResponseEntity<?> getOneAccount(@PathVariable("accountId") String id) {
         return Optional.ofNullable(ar.findById(id)).filter(Optional::isPresent)
@@ -56,11 +52,26 @@ public class AccountRepresentation {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // GET one CARD of one ACCOUNT
+    @GetMapping(value="/{accountId}/cards/{cardId}")
+    public ResponseEntity<?> getOneCardOneAccount(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard) {
+        return cards.getOneCard(idAccount, idCard);
+    }
+
+    //GET all CARDS of one
+    @GetMapping(value = "/{accountId}/cards")
+    public ResponseEntity<?> getAllCardsOneAccount(@PathVariable("accountId") String id) {
+        return cards.getAllCardsOfOneAccount(id);
+    }
+
+    //POST one ACCOUNT
     @PostMapping
     @Transactional
     public ResponseEntity<?> saveAccount(@RequestBody @Valid AccountInput account)  {
         Account account2Save = new Account(
                 UUID.randomUUID().toString(),
+                account.getCards(),
+                account.getOperations(),
                 account.getAmount(),
                 account.getFirstname(),
                 account.getLastname(),
@@ -76,7 +87,7 @@ public class AccountRepresentation {
         return ResponseEntity.created(location).build();
     }
 
-    // DELETE
+    // DELETE one ACCOUNT
     @DeleteMapping(value = "/{accountId}")
     @Transactional
     public ResponseEntity<?> deleteAccount(@PathVariable("accountId") String accountId) {
@@ -117,7 +128,7 @@ public class AccountRepresentation {
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, account, v);
             });
-            validator.validate(new AccountInput(account.getAmount(), account.getFirstname(),
+            validator.validate(new AccountInput(account.getCards(), account.getOperations(), account.getAmount(), account.getFirstname(),
                     account.getLastname(), account.getBirthdate(), account.getCountry(), account.getPassportnumber(), account.getPhonenumber(), account.getSecret(), account.getIban()));
             account.setId(accountId);
             ar.save(account);

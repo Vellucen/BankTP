@@ -48,12 +48,18 @@ public class CardRepresentation {
         return ResponseEntity.ok(assembler.toCollectionModel(cr.findAll()));
     }
 
-    // GET one
-    @GetMapping(value="/{cardId}")
-    public ResponseEntity<?> getOneCard(@PathVariable("cardId") String id) {
-        return Optional.ofNullable(cr.findById(id)).filter(Optional::isPresent)
+    // GET one CARD of one ACCOUNT
+    @GetMapping(value="/card/{cardId}")
+    public ResponseEntity<?> getOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard) {
+        return Optional.ofNullable(cr.findById(idCard)).filter(Optional::isPresent)
                 .map(i -> ResponseEntity.ok(assembler.toModel(i.get())))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    //GET all CARDS of one ACCOUNT
+    @GetMapping(value = "/account/{accountId}")
+    public ResponseEntity<?> getAllCardsOfOneAccount(@PathVariable("accountId") String id) {
+        return ResponseEntity.ok(assembler.toCollectionModel(cr.findByAccount_Id(id)));
     }
 
     @PostMapping

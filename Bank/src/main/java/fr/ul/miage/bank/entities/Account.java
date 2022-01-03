@@ -4,10 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
@@ -17,6 +17,10 @@ public class Account implements Serializable {
 
     @Id
     private String id;
+    @OneToMany
+    private List<Card> cards;
+    @OneToMany
+    private List<Operation> operations;
     private Double amount;
     private String firstname;
     private String lastname;
