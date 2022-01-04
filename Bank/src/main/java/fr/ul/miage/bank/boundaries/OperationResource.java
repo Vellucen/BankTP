@@ -8,5 +8,6 @@ import java.util.List;
 public interface OperationResource extends JpaRepository<Operation, String> {
     List<Operation> findByAccount_Id(String id);
 
-    List<Operation> findByCard_Id(String id);
+    List<Operation> findByCard_Number(String number);
+
 }

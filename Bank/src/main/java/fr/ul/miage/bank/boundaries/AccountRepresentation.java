@@ -55,9 +55,9 @@ public class AccountRepresentation {
     }
 
     // GET one CARD of one ACCOUNT
-    @GetMapping(value="/{accountId}/cards/{cardId}")
-    public ResponseEntity<?> getOneCardOneAccount(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard) {
-        return cards.getOneCard(idCard);
+    @GetMapping(value="/{accountId}/cards/{cardNum}")
+    public ResponseEntity<?> getOneCardOneAccount(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
+        return cards.getOneCard(numCard);
     }
 
     //GET all CARDS of one ACCOUNT
@@ -79,15 +79,15 @@ public class AccountRepresentation {
     }
 
     // GET one OPERATION of one CARD
-    @GetMapping(value="/{accountId}/cards/{cardId}/operations/{operationId}")
-    public ResponseEntity<?> getOneOperationOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard, @PathVariable("operationId") String idOperation) {
+    @GetMapping(value="/{accountId}/cards/{cardNum}/operations/{operationId}")
+    public ResponseEntity<?> getOneOperationOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @PathVariable("operationId") String idOperation) {
         return cards.getOneOperation(idOperation);
     }
 
     //GET all OPERATIONS of one CARD
-    @GetMapping(value = "/{accountId}/cards/{cardId}/operations")
-    public ResponseEntity<?> getAllOperationsOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard) {
-        return cards.getAllOperations(idCard);
+    @GetMapping(value = "/{accountId}/cards/{cardNum}/operations")
+    public ResponseEntity<?> getAllOperationsOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
+        return cards.getAllOperations(numCard);
     }
 
     //POST one ACCOUNT
@@ -96,8 +96,6 @@ public class AccountRepresentation {
     public ResponseEntity<?> saveAccount(@RequestBody @Valid AccountInput account)  {
         Account account2Save = new Account(
                 UUID.randomUUID().toString(),
-                account.getCards(),
-                account.getOperations(),
                 account.getAmount(),
                 account.getFirstname(),
                 account.getLastname(),
@@ -154,7 +152,7 @@ public class AccountRepresentation {
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, account, v);
             });
-            validator.validate(new AccountInput(account.getCards(), account.getOperations(), account.getAmount(), account.getFirstname(),
+            validator.validate(new AccountInput(account.getAmount(), account.getFirstname(),
                     account.getLastname(), account.getBirthdate(), account.getCountry(), account.getPassportnumber(), account.getPhonenumber(), account.getSecret(), account.getIban()));
             account.setId(accountId);
             ar.save(account);

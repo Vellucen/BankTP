@@ -15,8 +15,8 @@ public class BankCardAssembler implements RepresentationModelAssembler<Card, Ent
     public EntityModel<Card> toModel(Card card) {
         return EntityModel.of(card,
                 linkTo(methodOn(AccountRepresentation.class)
-                        .getOneCardOneAccount(card.getAccount().getId(), card.getId())).withSelfRel(),
+                        .getOneCardOneAccount(card.getAccount().getId(), card.getNumber())).withSelfRel(),
                 linkTo(methodOn(AccountRepresentation.class)
-                        .getAllOperationsOneCard(card.getAccount().getId(), card.getId())).withRel("Operations list"));
+                        .getAllOperationsOneCard(card.getAccount().getId(), card.getNumber())).withRel("Operations list"));
     }
 }
