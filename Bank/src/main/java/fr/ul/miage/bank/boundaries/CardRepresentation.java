@@ -35,11 +35,13 @@ public class CardRepresentation {
     private final CardResource cr;
     private final BankCardAssembler assembler;
     private final CardValidator validator;
+    private final OperationRepresentation operations;
 
-    public CardRepresentation(CardResource cr, BankCardAssembler assembler, CardValidator validator) {
+    public CardRepresentation(CardResource cr, BankCardAssembler assembler, CardValidator validator, OperationRepresentation operations) {
         this.cr = cr;
         this.assembler = assembler;
         this.validator = validator;
+        this.operations = operations;
     }
 
     // GET all
@@ -49,25 +51,39 @@ public class CardRepresentation {
     }
 
     // GET one CARD of one ACCOUNT
-    @GetMapping(value="/card/{cardId}")
-    public ResponseEntity<?> getOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard) {
+    @GetMapping(value="/card-account")
+    public ResponseEntity<?> getOneCard(@PathVariable("cardId") String idCard) {
         return Optional.ofNullable(cr.findById(idCard)).filter(Optional::isPresent)
                 .map(i -> ResponseEntity.ok(assembler.toModel(i.get())))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     //GET all CARDS of one ACCOUNT
-    @GetMapping(value = "/account/{accountId}")
+    @GetMapping(value="/cards-account")
     public ResponseEntity<?> getAllCardsOfOneAccount(@PathVariable("accountId") String id) {
         return ResponseEntity.ok(assembler.toCollectionModel(cr.findByAccount_Id(id)));
     }
 
+    // GET one OPERATION of one CARD
+    @GetMapping(value="/operation-card")
+    public ResponseEntity<?> getOneOperation(@PathVariable("operationId") String id) {
+        return operations.getOneOperationOfOneCard(id);
+    }
+
+    //GET all OPERATIONS of one CARD
+    @GetMapping(value="/operations-card")
+    public ResponseEntity<?> getAllOperations(@PathVariable("cardId") String id) {
+        return operations.getAllOperationsOfOneCard(id);
+    }
+
+    //POST one CARD
     @PostMapping
     @Transactional
     public ResponseEntity<?> saveCard(@RequestBody @Valid CardInput card)  {
         Card card2Save = new Card(
                 UUID.randomUUID().toString(),
                 card.getAccount(),
+                card.getOperations(),
                 card.getNumber(),
                 card.getCode(),
                 card.getCryptogram(),
@@ -123,7 +139,7 @@ public class CardRepresentation {
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, card, v);
             });
-            validator.validate(new CardInput(card.getAccount(), card.getNumber(), card.getCode(), card.getCryptogram(),
+            validator.validate(new CardInput(card.getAccount(), card.getOperations(), card.getNumber(), card.getCode(), card.getCryptogram(),
                     card.getCap(), card.isBlocked(), card.isLocation(), card.isContactless(), card.isVirtual()));
             card.setId(cardId);
             cr.save(card);

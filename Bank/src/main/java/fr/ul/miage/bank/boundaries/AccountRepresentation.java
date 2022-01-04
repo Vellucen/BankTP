@@ -36,12 +36,14 @@ public class AccountRepresentation {
     private final BankAccountAssembler assembler;
     private final AccountValidator validator;
     private final CardRepresentation cards;
+    private final OperationRepresentation operations;
 
-    public AccountRepresentation(AccountResource ar, BankAccountAssembler assembler, AccountValidator validator, CardRepresentation cards) {
+    public AccountRepresentation(AccountResource ar, BankAccountAssembler assembler, AccountValidator validator, CardRepresentation cards, OperationRepresentation operations) {
         this.ar = ar;
         this.assembler = assembler;
         this.validator = validator;
         this.cards = cards;
+        this.operations = operations;
     }
 
     // GET one ACCOUNT
@@ -55,13 +57,37 @@ public class AccountRepresentation {
     // GET one CARD of one ACCOUNT
     @GetMapping(value="/{accountId}/cards/{cardId}")
     public ResponseEntity<?> getOneCardOneAccount(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard) {
-        return cards.getOneCard(idAccount, idCard);
+        return cards.getOneCard(idCard);
     }
 
-    //GET all CARDS of one
+    //GET all CARDS of one ACCOUNT
     @GetMapping(value = "/{accountId}/cards")
     public ResponseEntity<?> getAllCardsOneAccount(@PathVariable("accountId") String id) {
         return cards.getAllCardsOfOneAccount(id);
+    }
+
+    // GET one OPERATION of one ACCOUNT
+    @GetMapping(value="/{accountId}/operations/{operationId}")
+    public ResponseEntity<?> getOneOperationOneAccount(@PathVariable("accountId") String idAccount, @PathVariable("operationId") String idOperation) {
+        return operations.getOneOperationOfOneAccount(idOperation);
+    }
+
+    //GET all OPERATIONS of one ACCOUNT
+    @GetMapping(value = "/{accountId}/operations")
+    public ResponseEntity<?> getAllOperationsOneAccount(@PathVariable("accountId") String id) {
+        return operations.getAllOperationsOfOneAccount(id);
+    }
+
+    // GET one OPERATION of one CARD
+    @GetMapping(value="/{accountId}/cards/{cardId}/operations/{operationId}")
+    public ResponseEntity<?> getOneOperationOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard, @PathVariable("operationId") String idOperation) {
+        return cards.getOneOperation(idOperation);
+    }
+
+    //GET all OPERATIONS of one CARD
+    @GetMapping(value = "/{accountId}/cards/{cardId}/operations")
+    public ResponseEntity<?> getAllOperationsOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardId") String idCard) {
+        return cards.getAllOperations(idCard);
     }
 
     //POST one ACCOUNT

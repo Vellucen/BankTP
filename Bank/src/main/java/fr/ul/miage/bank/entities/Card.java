@@ -4,11 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 @Data
@@ -21,6 +19,8 @@ public class Card implements Serializable {
     @ManyToOne
     @JoinColumn(name = "id_account")
     private Account account;
+    @OneToMany
+    private List<Operation> operations;
     private String number;
     private String code;
     private String cryptogram;

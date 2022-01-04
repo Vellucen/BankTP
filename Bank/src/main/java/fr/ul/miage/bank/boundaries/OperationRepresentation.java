@@ -40,20 +40,35 @@ public class OperationRepresentation {
         this.validator = validator;
     }
 
-    // GET all
-    @GetMapping
-    public ResponseEntity<?> getAllOperations() {
-        return ResponseEntity.ok(assembler.toCollectionModel(or.findAll()));
-    }
-
-    // GET one
-    @GetMapping(value="/{operationId}")
-    public ResponseEntity<?> getOneOperation(@PathVariable("operationId") String id) {
+    // GET one OPERATION of one ACCOUNT
+    @GetMapping(value="/operation-account")
+    public ResponseEntity<?> getOneOperationOfOneAccount(@PathVariable("operationId") String id) {
         return Optional.ofNullable(or.findById(id)).filter(Optional::isPresent)
                 .map(i -> ResponseEntity.ok(assembler.toModel(i.get())))
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    //GET all OPERATIONS of one ACCOUNT
+    @GetMapping(value="/operations-account")
+    public ResponseEntity<?> getAllOperationsOfOneAccount(@PathVariable("accountId") String id) {
+        return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_Id(id)));
+    }
+
+    // GET one OPERATION of one CARD
+    @GetMapping(value="/operation-card")
+    public ResponseEntity<?> getOneOperationOfOneCard(@PathVariable("operationId") String id) {
+        return Optional.ofNullable(or.findById(id)).filter(Optional::isPresent)
+                .map(i -> ResponseEntity.ok(assembler.toModel(i.get())))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    //GET all OPERATIONS of one CARD
+    @GetMapping(value="/operations-card")
+    public ResponseEntity<?> getAllOperationsOfOneCard(@PathVariable("cardId") String id) {
+        return ResponseEntity.ok(assembler.toCollectionModel(or.findByCard_Id(id)));
+    }
+
+    //POST one OPERATION
     @PostMapping
     @Transactional
     public ResponseEntity<?> saveOperation(@RequestBody @Valid OperationInput operation)  {

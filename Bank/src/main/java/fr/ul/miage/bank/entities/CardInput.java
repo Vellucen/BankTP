@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,6 +14,7 @@ import javax.validation.constraints.Size;
 public class CardInput {
 
     private Account account;
+    private List<Operation> operations;
     @Size(min = 16, max = 16)
     @Pattern(regexp = "[0-9]+")
     private String number;
