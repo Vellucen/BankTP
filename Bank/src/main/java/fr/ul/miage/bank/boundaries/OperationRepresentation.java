@@ -7,7 +7,6 @@ import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,27 +40,27 @@ public class OperationRepresentation {
     }
 
     // GET one OPERATION of one ACCOUNT
-    public ResponseEntity<?> getOneOperationOfOneAccount(String id) {
-        return Optional.ofNullable(or.findById(id)).filter(Optional::isPresent)
+    public ResponseEntity<?> getOneOperationOfOneAccount(String idAccount, String idOperation) {
+        return Optional.ofNullable(or.findByAccount_IdAndId(idAccount, idOperation)).filter(Optional::isPresent)
                 .map(i -> ResponseEntity.ok(assembler.toModel(i.get())))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     //GET all OPERATIONS of one ACCOUNT
-    public ResponseEntity<?> getAllOperationsOfOneAccount(String id) {
-        return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_Id(id)));
+    public ResponseEntity<?> getAllOperationsOfOneAccount(String idAccount) {
+        return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_Id(idAccount)));
     }
 
     // GET one OPERATION of one CARD
-    public ResponseEntity<?> getOneOperationOfOneCard(String id) {
-        return Optional.ofNullable(or.findById(id)).filter(Optional::isPresent)
+    public ResponseEntity<?> getOneOperationOfOneCard(String idAccount, String numCard, String idOperation) {
+        return Optional.ofNullable(or.findByAccount_IdAndCard_NumberAndId(idAccount, numCard, idOperation)).filter(Optional::isPresent)
                 .map(i -> ResponseEntity.ok(assembler.toModel(i.get())))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     //GET all OPERATIONS of one CARD
-    public ResponseEntity<?> getAllOperationsOfOneCard(String numCard) {
-        return ResponseEntity.ok(assembler.toCollectionModel(or.findByCard_Number(numCard)));
+    public ResponseEntity<?> getAllOperationsOfOneCard(String idAccount, String numCard) {
+        return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCard_Number(idAccount, numCard)));
     }
 
     //POST one OPERATION

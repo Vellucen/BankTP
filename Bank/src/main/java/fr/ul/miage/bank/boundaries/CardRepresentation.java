@@ -9,7 +9,6 @@ import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,25 +44,25 @@ public class CardRepresentation {
     }
 
     // GET one CARD of one ACCOUNT
-    public ResponseEntity<?> getOneCard(String numCard) {
-        return Optional.ofNullable(cr.findByNumber(numCard)).filter(Optional::isPresent)
+    public ResponseEntity<?> getOneCard(String idAccount, String numCard) {
+        return Optional.ofNullable(cr.findByAccount_IdAndNumber(idAccount, numCard)).filter(Optional::isPresent)
                 .map(i -> ResponseEntity.ok(assembler.toModel(i.get())))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     //GET all CARDS of one ACCOUNT
-    public ResponseEntity<?> getAllCardsOfOneAccount(String id) {
-        return ResponseEntity.ok(assembler.toCollectionModel(cr.findByAccount_Id(id)));
+    public ResponseEntity<?> getAllCardsOfOneAccount(String idAccount) {
+        return ResponseEntity.ok(assembler.toCollectionModel(cr.findByAccount_Id(idAccount)));
     }
 
     // GET one OPERATION of one CARD
-    public ResponseEntity<?> getOneOperation(String id) {
-        return operations.getOneOperationOfOneCard(id);
+    public ResponseEntity<?> getOneOperation(String idAccount, String numCard, String idOperation) {
+        return operations.getOneOperationOfOneCard(idAccount, numCard, idOperation);
     }
 
     //GET all OPERATIONS of one CARD
-    public ResponseEntity<?> getAllOperations(String numCard) {
-        return operations.getAllOperationsOfOneCard(numCard);
+    public ResponseEntity<?> getAllOperations(String idAccount, String numCard) {
+        return operations.getAllOperationsOfOneCard(idAccount, numCard);
     }
 
     //POST one CARD

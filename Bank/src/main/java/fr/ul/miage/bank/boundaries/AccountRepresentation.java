@@ -57,37 +57,37 @@ public class AccountRepresentation {
     // GET one CARD of one ACCOUNT
     @GetMapping(value="/{accountId}/cards/{cardNum}")
     public ResponseEntity<?> getOneCardOneAccount(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
-        return cards.getOneCard(numCard);
+        return cards.getOneCard(idAccount, numCard);
     }
 
     //GET all CARDS of one ACCOUNT
     @GetMapping(value = "/{accountId}/cards")
-    public ResponseEntity<?> getAllCardsOneAccount(@PathVariable("accountId") String id) {
-        return cards.getAllCardsOfOneAccount(id);
+    public ResponseEntity<?> getAllCardsOneAccount(@PathVariable("accountId") String idAccount) {
+        return cards.getAllCardsOfOneAccount(idAccount);
     }
 
     // GET one OPERATION of one ACCOUNT
     @GetMapping(value="/{accountId}/operations/{operationId}")
     public ResponseEntity<?> getOneOperationOneAccount(@PathVariable("accountId") String idAccount, @PathVariable("operationId") String idOperation) {
-        return operations.getOneOperationOfOneAccount(idOperation);
+        return operations.getOneOperationOfOneAccount(idAccount, idOperation);
     }
 
     //GET all OPERATIONS of one ACCOUNT
     @GetMapping(value = "/{accountId}/operations")
-    public ResponseEntity<?> getAllOperationsOneAccount(@PathVariable("accountId") String id) {
-        return operations.getAllOperationsOfOneAccount(id);
+    public ResponseEntity<?> getAllOperationsOneAccount(@PathVariable("accountId") String idAccount) {
+        return operations.getAllOperationsOfOneAccount(idAccount);
     }
 
     // GET one OPERATION of one CARD
     @GetMapping(value="/{accountId}/cards/{cardNum}/operations/{operationId}")
     public ResponseEntity<?> getOneOperationOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @PathVariable("operationId") String idOperation) {
-        return cards.getOneOperation(idOperation);
+        return cards.getOneOperation(idAccount, numCard, idOperation);
     }
 
     //GET all OPERATIONS of one CARD
     @GetMapping(value = "/{accountId}/cards/{cardNum}/operations")
     public ResponseEntity<?> getAllOperationsOneCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
-        return cards.getAllOperations(numCard);
+        return cards.getAllOperations(idAccount, numCard);
     }
 
     //POST one ACCOUNT
