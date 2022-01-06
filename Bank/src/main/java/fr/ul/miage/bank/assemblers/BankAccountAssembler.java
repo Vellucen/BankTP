@@ -19,6 +19,6 @@ public class BankAccountAssembler implements RepresentationModelAssembler<Accoun
                 linkTo(methodOn(AccountRepresentation.class)
                         .getAllCardsOneAccount(account.getId())).withRel("Cards list"),
                 linkTo(methodOn(AccountRepresentation.class)
-                        .getAllOperationsOneAccount(account.getId())).withRel("Operations list"));
+                        .getAllOperationsOneAccount(account.getId(), "", "", "")).withRel("Operations list"));
     }
 }

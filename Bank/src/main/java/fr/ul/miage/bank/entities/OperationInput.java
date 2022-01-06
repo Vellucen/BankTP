@@ -29,7 +29,7 @@ public class OperationInput {
     private Double rate;
     private Date date;
     @NotNull
-    private String creditoraccount;
+    private String shop;
     @Size(min = 4)
     private String country;
 }

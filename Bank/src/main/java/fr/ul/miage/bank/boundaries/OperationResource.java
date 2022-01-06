@@ -13,6 +13,20 @@ public interface OperationResource extends JpaRepository<Operation, String> {
 
     List<Operation> findByAccount_IdAndCard_Number(String idAccount, String number);
 
-    Optional<Operation> findByAccount_IdAndId(String id, String id1);
+    Optional<Operation> findByAccount_IdAndId(String idAccount, String id1);
+
+    List<Operation> findByAccount_IdAndCategoryAndShopAndCountry(String idAccount, String category, String shop, String country);
+
+    List<Operation> findByAccount_IdAndShopAndCountry(String idAccount, String shop, String country);
+
+    List<Operation> findByAccount_IdAndCategoryAndCountry(String idAccount, String category, String country);
+
+    List<Operation> findByAccount_IdAndCategoryAndShop(String idAccount, String category, String shop);
+
+    List<Operation> findByAccount_IdAndCategory(String idAccount, String category);
+
+    List<Operation> findByAccount_IdAndShop(String idAccount, String shop);
+
+    List<Operation> findByAccount_IdAndCountry(String idAccount, String country);
 
 }

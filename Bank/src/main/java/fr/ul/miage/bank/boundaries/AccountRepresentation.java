@@ -1,22 +1,13 @@
 package fr.ul.miage.bank.boundaries;
 
 import fr.ul.miage.bank.assemblers.BankAccountAssembler;
-import fr.ul.miage.bank.entities.Account;
-import fr.ul.miage.bank.entities.AccountInput;
-import fr.ul.miage.bank.entities.AccountValidator;
+import fr.ul.miage.bank.entities.*;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 import java.lang.reflect.Field;
@@ -48,9 +39,17 @@ public class AccountRepresentation {
 
     // GET one ACCOUNT
     @GetMapping(value="/{accountId}")
-    public ResponseEntity<?> getOneAccount(@PathVariable("accountId") String id) {
-        return Optional.ofNullable(ar.findById(id)).filter(Optional::isPresent)
+    public ResponseEntity<?> getOneAccount(@PathVariable("accountId") String idAccount) {
+        return Optional.ofNullable(ar.findById(idAccount)).filter(Optional::isPresent)
                 .map(i -> ResponseEntity.ok(assembler.toModel(i.get())))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // GET amount of one ACCOUNT
+    @GetMapping(value="/{accountId}/amount")
+    public ResponseEntity<?> getAmountOneAccount(@PathVariable("accountId") String idAccount) {
+        return Optional.ofNullable(ar.findById(idAccount)).filter(Optional::isPresent)
+                .map(i -> ResponseEntity.ok(assembler.toModel(i.get()).getContent().getAmount()))
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -72,10 +71,10 @@ public class AccountRepresentation {
         return operations.getOneOperationOfOneAccount(idAccount, idOperation);
     }
 
-    //GET all OPERATIONS of one ACCOUNT
+    //GET all OPERATIONS of one ACCOUNT and filtered by PARAMS
     @GetMapping(value = "/{accountId}/operations")
-    public ResponseEntity<?> getAllOperationsOneAccount(@PathVariable("accountId") String idAccount) {
-        return operations.getAllOperationsOfOneAccount(idAccount);
+    public ResponseEntity<?> getAllOperationsOneAccount(@PathVariable("accountId") String idAccount, @RequestParam(required = false) String category, @RequestParam(required = false) String shop, @RequestParam(required = false) String country) {
+        return operations.getAllOperationsOfOneAccount(idAccount, category, shop, country);
     }
 
     // GET one OPERATION of one CARD
@@ -96,7 +95,7 @@ public class AccountRepresentation {
     public ResponseEntity<?> saveAccount(@RequestBody @Valid AccountInput account)  {
         Account account2Save = new Account(
                 UUID.randomUUID().toString(),
-                account.getAmount(),
+                0.00,
                 account.getFirstname(),
                 account.getLastname(),
                 account.getBirthdate(),
@@ -111,39 +110,22 @@ public class AccountRepresentation {
         return ResponseEntity.created(location).build();
     }
 
-    // DELETE one ACCOUNT
-    @DeleteMapping(value = "/{accountId}")
-    @Transactional
-    public ResponseEntity<?> deleteAccount(@PathVariable("accountId") String accountId) {
-        Optional<Account> account = ar.findById(accountId);
-        if (account.isPresent()) {
-            ar.delete(account.get());
-        }
-        return ResponseEntity.noContent().build();
+    //POST one CARD
+    @PostMapping(value = "/{accountId}/cards")
+    public ResponseEntity<?> saveCardOneAccount(@PathVariable("accountId") String idAccount, @RequestBody @Valid CardInput card) {
+        return cards.saveCard(idAccount, card);
     }
 
-    // PUT
-    @PutMapping(value = "/{accountId}")
-    @Transactional
-    public ResponseEntity<?> updateAccount(@RequestBody Account account,
-                                               @PathVariable("accountId") String accountId) {
-        Optional<Account> body = Optional.ofNullable(account);
-        if (!body.isPresent()) {
-            return ResponseEntity.badRequest().build();
-        }
-        if (!ar.existsById(accountId)) {
-            return ResponseEntity.notFound().build();
-        }
-        account.setId(accountId);
-        Account result = ar.save(account);
-        return ResponseEntity.ok().build();
+    //POST one OPERATION
+    @PostMapping(value = "/{accountId}/operations")
+    public ResponseEntity<?> saveOperationOneAccount(@PathVariable("accountId") String idAccount, @RequestBody @Valid OperationInput operation) {
+        return operations.saveOperation(idAccount, operation);
     }
 
     // PATCH
     @PatchMapping(value = "/{accountId}")
     @Transactional
-    public ResponseEntity<?> updateAccountPartiel(@PathVariable("accountId") String accountId,
-                                                      @RequestBody Map<Object, Object> fields) {
+    public ResponseEntity<?> updateAccountPartiel(@PathVariable("accountId") String accountId, @RequestBody Map<Object, Object> fields) {
         Optional<Account> body = ar.findById(accountId);
         if (body.isPresent()) {
             Account account = body.get();

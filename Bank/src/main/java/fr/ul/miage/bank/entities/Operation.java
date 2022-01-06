@@ -30,6 +30,6 @@ public class Operation implements Serializable {
     private Double amount;
     private Double rate;
     private Date date;
-    private String creditoraccount;
+    private String shop;
     private String country;
 }

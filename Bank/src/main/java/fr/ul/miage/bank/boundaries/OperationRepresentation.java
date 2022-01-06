@@ -6,11 +6,9 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +16,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,9 +45,33 @@ public class OperationRepresentation {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    //GET all OPERATIONS of one ACCOUNT
-    public ResponseEntity<?> getAllOperationsOfOneAccount(String idAccount) {
-        return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_Id(idAccount)));
+    //GET all OPERATIONS of one ACCOUNT and filtered by PARAMS
+    public ResponseEntity<?> getAllOperationsOfOneAccount(String idAccount, String category, String shop, String country) {
+
+        if (category.isEmpty() && shop.isEmpty() && country.isEmpty()){
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_Id(idAccount)));
+        }
+        else if (shop.isEmpty() && country.isEmpty()){
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategory(idAccount, category)));
+        }
+        else if (category.isEmpty() && country.isEmpty()){
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndShop(idAccount, shop)));
+        }
+        else if (category.isEmpty() && shop.isEmpty()){
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCountry(idAccount, country)));
+        }
+        else if (country.isEmpty()){
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndShop(idAccount, category, shop)));
+        }
+        else if (shop.isEmpty()){
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndCountry(idAccount, category, country)));
+        }
+        else if (category.isEmpty()){
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndShopAndCountry(idAccount, shop, country)));
+        }
+        else {
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndShopAndCountry(idAccount, category, shop, country)));
+        }
     }
 
     // GET one OPERATION of one CARD
@@ -66,7 +89,7 @@ public class OperationRepresentation {
     //POST one OPERATION
     @PostMapping
     @Transactional
-    public ResponseEntity<?> saveOperation(@RequestBody @Valid OperationInput operation)  {
+    public ResponseEntity<?> saveOperation(String idAccount, @RequestBody @Valid OperationInput operation)  {
         Operation operation2Save = new Operation(
                 UUID.randomUUID().toString(),
                 operation.getAccount(),
@@ -75,8 +98,8 @@ public class OperationRepresentation {
                 operation.getCategory(),
                 operation.getAmount(),
                 operation.getRate(),
-                operation.getDate(),
-                operation.getCreditoraccount(),
+                new Date(),
+                operation.getShop(),
                 operation.getCountry()
         );
         Operation saved = or.save(operation2Save);
@@ -84,39 +107,10 @@ public class OperationRepresentation {
         return ResponseEntity.created(location).build();
     }
 
-    // DELETE
-    @DeleteMapping(value = "/{operationId}")
-    @Transactional
-    public ResponseEntity<?> deleteOperation(@PathVariable("operationId") String operationId) {
-        Optional<Operation> operation = or.findById(operationId);
-        if (operation.isPresent()) {
-            or.delete(operation.get());
-        }
-        return ResponseEntity.noContent().build();
-    }
-
-    // PUT
-    @PutMapping(value = "/{operationId}")
-    @Transactional
-    public ResponseEntity<?> updateOperation(@RequestBody Operation operation,
-                                        @PathVariable("operationId") String operationId) {
-        Optional<Operation> body = Optional.ofNullable(operation);
-        if (!body.isPresent()) {
-            return ResponseEntity.badRequest().build();
-        }
-        if (!or.existsById(operationId)) {
-            return ResponseEntity.notFound().build();
-        }
-        operation.setId(operationId);
-        Operation result = or.save(operation);
-        return ResponseEntity.ok().build();
-    }
-
     // PATCH
     @PatchMapping(value = "/{operationId}")
     @Transactional
-    public ResponseEntity<?> updateOperationPartiel(@PathVariable("operationId") String operationId,
-                                                  @RequestBody Map<Object, Object> fields) {
+    public ResponseEntity<?> updateOperationPartiel(@PathVariable("operationId") String operationId, @RequestBody Map<Object, Object> fields) {
         Optional<Operation> body = or.findById(operationId);
         if (body.isPresent()) {
             Operation operation = body.get();
@@ -126,7 +120,7 @@ public class OperationRepresentation {
                 ReflectionUtils.setField(field, operation, v);
             });
             validator.validate(new OperationInput(operation.getAccount(), operation.getCard(), operation.getWording(), operation.getCategory(),
-                    operation.getAmount(), operation.getRate(), operation.getDate(), operation.getCreditoraccount(), operation.getCountry()));
+                    operation.getAmount(), operation.getRate(), operation.getDate(), operation.getShop(), operation.getCountry()));
             operation.setId(operationId);
             or.save(operation);
             return ResponseEntity.ok().build();

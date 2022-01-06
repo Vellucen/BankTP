@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 @Entity
 @Data
@@ -19,6 +20,7 @@ public class Card implements Serializable {
     @JoinColumn(name = "id_account")
     private Account account;
     private String number;
+    private Date expiration;
     private String code;
     private String cryptogram;
     private Double cap;
