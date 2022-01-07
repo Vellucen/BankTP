@@ -2,25 +2,18 @@ package fr.ul.miage.bank.boundaries;
 
 import fr.ul.miage.bank.assemblers.BankOperationAssembler;
 import fr.ul.miage.bank.entities.*;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.Date;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 @RestController
@@ -29,11 +22,15 @@ import javax.validation.Valid;
 public class OperationRepresentation {
 
     private final OperationResource or;
+    private final AccountResource ar;
+    private final CardResource cr;
     private final BankOperationAssembler assembler;
     private final OperationValidator validator;
 
-    public OperationRepresentation(OperationResource or, BankOperationAssembler assembler, OperationValidator validator) {
+    public OperationRepresentation(OperationResource or, AccountResource ar, CardResource cr, BankOperationAssembler assembler, OperationValidator validator) {
         this.or = or;
+        this.ar = ar;
+        this.cr = cr;
         this.assembler = assembler;
         this.validator = validator;
     }
@@ -86,14 +83,12 @@ public class OperationRepresentation {
         return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCard_Number(idAccount, numCard)));
     }
 
-    //POST one OPERATION
-    @PostMapping
-    @Transactional
-    public ResponseEntity<?> saveOperation(String idAccount, @RequestBody @Valid OperationInput operation)  {
+    //POST one OPERATION of one ACCOUNT (transfer)
+    public ResponseEntity<?> transfer(String idAccount, @RequestBody @Valid OperationInput operation)  {
         Operation operation2Save = new Operation(
                 UUID.randomUUID().toString(),
-                operation.getAccount(),
-                operation.getCard(),
+                ar.getById(idAccount),
+                null,
                 operation.getWording(),
                 operation.getCategory(),
                 operation.getAmount(),
@@ -107,24 +102,60 @@ public class OperationRepresentation {
         return ResponseEntity.created(location).build();
     }
 
-    // PATCH
-    @PatchMapping(value = "/{operationId}")
-    @Transactional
-    public ResponseEntity<?> updateOperationPartiel(@PathVariable("operationId") String operationId, @RequestBody Map<Object, Object> fields) {
-        Optional<Operation> body = or.findById(operationId);
-        if (body.isPresent()) {
-            Operation operation = body.get();
-            fields.forEach((f, v) -> {
-                Field field = ReflectionUtils.findField(Operation.class, f.toString());
-                field.setAccessible(true);
-                ReflectionUtils.setField(field, operation, v);
-            });
-            validator.validate(new OperationInput(operation.getAccount(), operation.getCard(), operation.getWording(), operation.getCategory(),
-                    operation.getAmount(), operation.getRate(), operation.getDate(), operation.getShop(), operation.getCountry()));
-            operation.setId(operationId);
-            or.save(operation);
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.notFound().build();
+    //POST one OPERATION of one CARD (payment in shop by code)
+    public ResponseEntity<?> paymentByCode(String idAccount, String numCard, @RequestBody @Valid OperationInput operation)  {
+        Operation operation2Save = new Operation(
+                UUID.randomUUID().toString(),
+                ar.getById(idAccount),
+                cr.findByNumber(numCard).get(),
+                operation.getWording(),
+                operation.getCategory(),
+                operation.getAmount(),
+                operation.getRate(),
+                new Date(),
+                operation.getShop(),
+                operation.getCountry()
+        );
+        Operation saved = or.save(operation2Save);
+        URI location = linkTo(OperationRepresentation.class).slash(saved.getId()).toUri();
+        return ResponseEntity.created(location).build();
+    }
+
+    //POST one OPERATION of one CARD (payment in shop use contactless)
+    public ResponseEntity<?> paymentUseContactless(String idAccount, String numCard, @RequestBody @Valid OperationInput operation)  {
+        Operation operation2Save = new Operation(
+                UUID.randomUUID().toString(),
+                ar.getById(idAccount),
+                cr.findByNumber(numCard).get(),
+                operation.getWording(),
+                operation.getCategory(),
+                operation.getAmount(),
+                operation.getRate(),
+                new Date(),
+                operation.getShop(),
+                operation.getCountry()
+        );
+        Operation saved = or.save(operation2Save);
+        URI location = linkTo(OperationRepresentation.class).slash(saved.getId()).toUri();
+        return ResponseEntity.created(location).build();
+    }
+
+    //POST one OPERATION of one CARD (payment online)
+    public ResponseEntity<?> paymentOnline(String idAccount, String numCard, @RequestBody @Valid OperationInput operation)  {
+        Operation operation2Save = new Operation(
+                UUID.randomUUID().toString(),
+                ar.getById(idAccount),
+                cr.findByNumber(numCard).get(),
+                operation.getWording(),
+                operation.getCategory(),
+                operation.getAmount(),
+                operation.getRate(),
+                new Date(),
+                operation.getShop(),
+                operation.getCountry()
+        );
+        Operation saved = or.save(operation2Save);
+        URI location = linkTo(OperationRepresentation.class).slash(saved.getId()).toUri();
+        return ResponseEntity.created(location).build();
     }
 }

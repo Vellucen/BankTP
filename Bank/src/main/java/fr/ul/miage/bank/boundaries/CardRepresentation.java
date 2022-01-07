@@ -8,9 +8,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,10 +18,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import javax.transaction.Transactional;
 
 @RestController
 @RequestMapping(value="/cards", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -31,12 +29,14 @@ import javax.transaction.Transactional;
 public class CardRepresentation {
 
     private final CardResource cr;
+    private final AccountResource ar;
     private final BankCardAssembler assembler;
     private final CardValidator validator;
     private final OperationRepresentation operations;
 
-    public CardRepresentation(CardResource cr, BankCardAssembler assembler, CardValidator validator, OperationRepresentation operations) {
+    public CardRepresentation(CardResource cr, AccountResource ar, BankCardAssembler assembler, CardValidator validator, OperationRepresentation operations) {
         this.cr = cr;
+        this.ar = ar;
         this.assembler = assembler;
         this.validator = validator;
         this.operations = operations;
@@ -65,14 +65,14 @@ public class CardRepresentation {
     }
 
     //POST one CARD
-    @PostMapping
-    @Transactional
     public ResponseEntity<?> saveCard(String idAccount, CardInput card)  {
+        Date expirationDate = new Date();
+        expirationDate.setYear(expirationDate.getYear()+4);
         Card card2Save = new Card(
                 UUID.randomUUID().toString(),
-                card.getAccount(),
+                ar.getById(idAccount),
                 card.getNumber(),
-                card.getExpiration(),
+                expirationDate,
                 card.getCode(),
                 card.getCryptogram(),
                 card.getCap(),
@@ -86,12 +86,9 @@ public class CardRepresentation {
         return ResponseEntity.created(location).build();
     }
 
-
-    // PATCH
-    @PatchMapping(value = "/{cardId}")
-    @Transactional
-    public ResponseEntity<?> updateCardPartiel(@PathVariable("cardId") String cardId, @RequestBody Map<Object, Object> fields) {
-        Optional<Card> body = cr.findById(cardId);
+    // PATCH one CARD
+    public ResponseEntity<?> updateCardPartiel(String idAccoun, String numCard, Map<Object, Object> fields) {
+        Optional<Card> body = cr.findByNumber(numCard);
         if (body.isPresent()) {
             Card card = body.get();
             fields.forEach((f, v) -> {
@@ -99,9 +96,9 @@ public class CardRepresentation {
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, card, v);
             });
-            validator.validate(new CardInput(card.getAccount(), card.getNumber(), card.getExpiration(), card.getCode(), card.getCryptogram(),
-                    card.getCap(), card.isBlocked(), card.isLocation(), card.isContactless(), card.isVirtual()));
-            card.setId(cardId);
+            validator.validate(new CardInput(card.getNumber(), card.getCode(), card.getCryptogram(),
+                    card.getCap()));
+            card.setId(cr.findByNumber(numCard).get().getId());
             cr.save(card);
             return ResponseEntity.ok().build();
         }

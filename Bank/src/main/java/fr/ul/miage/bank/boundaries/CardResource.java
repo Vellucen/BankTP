@@ -11,4 +11,6 @@ public interface CardResource extends JpaRepository<Card, String> {
 
     Optional<Card> findByAccount_IdAndNumber(String id, String number);
 
+    Optional<Card> findByNumber(String number);
+
 }

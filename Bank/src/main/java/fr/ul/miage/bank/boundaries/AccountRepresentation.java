@@ -2,6 +2,7 @@ package fr.ul.miage.bank.boundaries;
 
 import fr.ul.miage.bank.assemblers.BankAccountAssembler;
 import fr.ul.miage.bank.entities.*;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.http.MediaType;
@@ -102,7 +103,7 @@ public class AccountRepresentation {
                 account.getCountry(),
                 account.getPassportnumber(),
                 account.getPhonenumber(),
-                account.getSecret(),
+                hashSecret(account.getPassportnumber(), account.getSecret()),
                 account.getIban()
         );
         Account saved = ar.save(account2Save);
@@ -112,17 +113,40 @@ public class AccountRepresentation {
 
     //POST one CARD
     @PostMapping(value = "/{accountId}/cards")
+    @Transactional
     public ResponseEntity<?> saveCardOneAccount(@PathVariable("accountId") String idAccount, @RequestBody @Valid CardInput card) {
         return cards.saveCard(idAccount, card);
     }
 
-    //POST one OPERATION
-    @PostMapping(value = "/{accountId}/operations")
-    public ResponseEntity<?> saveOperationOneAccount(@PathVariable("accountId") String idAccount, @RequestBody @Valid OperationInput operation) {
-        return operations.saveOperation(idAccount, operation);
+    //POST one OPERATION (payment by card in shop use code)
+    @PostMapping(value = "/{accountId}/cards/{cardNum}operations/code")
+    @Transactional
+    public ResponseEntity<?> paymentByCardUseCode(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @RequestBody @Valid OperationInput operation) {
+        return operations.paymentByCode(idAccount, numCard, operation);
     }
 
-    // PATCH
+    //POST one OPERATION (payment by card use contactless)
+    @PostMapping(value = "/{accountId}/cards/{cardNum}operations/contactless")
+    @Transactional
+    public ResponseEntity<?> paymentByCardUseContactless(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @RequestBody @Valid OperationInput operation) {
+        return operations.paymentUseContactless(idAccount, numCard, operation);
+    }
+
+    //POST one OPERATION (payment by card online)
+    @PostMapping(value = "/{accountId}/cards/{cardNum}operations/online")
+    @Transactional
+    public ResponseEntity<?> paymentByCardOnline(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @RequestBody @Valid OperationInput operation) {
+        return operations.paymentOnline(idAccount, numCard, operation);
+    }
+
+    //POST one OPERATION (transfer)
+    @PostMapping(value = "/{accountId}/operations")
+    @Transactional
+    public ResponseEntity<?> transferOperation(@PathVariable("accountId") String idAccount, @RequestBody @Valid OperationInput operation) {
+        return operations.transfer(idAccount, operation);
+    }
+
+    // PATCH one ACCOUNT
     @PatchMapping(value = "/{accountId}")
     @Transactional
     public ResponseEntity<?> updateAccountPartiel(@PathVariable("accountId") String accountId, @RequestBody Map<Object, Object> fields) {
@@ -134,12 +158,23 @@ public class AccountRepresentation {
                 field.setAccessible(true);
                 ReflectionUtils.setField(field, account, v);
             });
-            validator.validate(new AccountInput(account.getAmount(), account.getFirstname(),
+            validator.validate(new AccountInput(account.getFirstname(),
                     account.getLastname(), account.getBirthdate(), account.getCountry(), account.getPassportnumber(), account.getPhonenumber(), account.getSecret(), account.getIban()));
             account.setId(accountId);
             ar.save(account);
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    //PATCH one CARD
+    @PatchMapping(value = "/{accountId}/cards/{cardNum}")
+    @Transactional
+    public ResponseEntity<?> updateCardPartiel(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @RequestBody Map<Object, Object> fields) {
+        return cards.updateCardPartiel(idAccount, numCard, fields);
+    }
+
+    private String hashSecret(String numPassport, String secret){
+        return org.apache.commons.codec.digest.DigestUtils.sha256(numPassport + secret).toString();
     }
 }

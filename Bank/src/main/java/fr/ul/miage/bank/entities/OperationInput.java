@@ -3,11 +3,8 @@ package fr.ul.miage.bank.entities;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.util.Date;
 
 @Data
@@ -15,21 +12,18 @@ import java.util.Date;
 @AllArgsConstructor
 public class OperationInput {
 
-    private Account account;
-    @Nullable
-    private Card card;
-    @NotNull
     @Size(min = 5, max = 50)
     private String wording;
     @Size(min = 5, max = 20)
     private String category;
-    @NotNull
     @Positive
     private Double amount;
+    @Positive
     private Double rate;
+    @Past
     private Date date;
-    @NotNull
     private String shop;
-    @Size(min = 4)
+    @Size(min = 2, max = 2)
+    @Pattern(regexp = "[A-Z]{2}")
     private String country;
 }
