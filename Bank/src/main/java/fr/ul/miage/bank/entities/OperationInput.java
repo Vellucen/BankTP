@@ -12,6 +12,8 @@ import java.util.Date;
 @AllArgsConstructor
 public class OperationInput {
 
+    private Account account;
+    private Card card;
     @Size(min = 5, max = 50)
     private String wording;
     @Size(min = 5, max = 20)
