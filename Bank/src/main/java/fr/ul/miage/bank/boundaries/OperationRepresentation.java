@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 import java.net.URI;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
@@ -28,14 +27,12 @@ public class OperationRepresentation {
     private final AccountResource ar;
     private final CardResource cr;
     private final BankOperationAssembler assembler;
-    private final OperationValidator validator;
 
-    public OperationRepresentation(OperationResource or, AccountResource ar, CardResource cr, BankOperationAssembler assembler, OperationValidator validator) {
+    public OperationRepresentation(OperationResource or, AccountResource ar, CardResource cr, BankOperationAssembler assembler) {
         this.or = or;
         this.ar = ar;
         this.cr = cr;
         this.assembler = assembler;
-        this.validator = validator;
     }
 
     // GET one OPERATION of one ACCOUNT
@@ -46,31 +43,31 @@ public class OperationRepresentation {
     }
 
     //GET all OPERATIONS of one ACCOUNT and filtered by PARAMS
-    public ResponseEntity<?> getAllOperationsOfOneAccount(String idAccount, String category, String shop, String country) {
+    public ResponseEntity<?> getAllOperationsOfOneAccount(String idAccount, String category, String ibanCreditor, String country) {
 
-        if (category.isEmpty() && shop.isEmpty() && country.isEmpty()){
+        if (category.isEmpty() && ibanCreditor.isEmpty() && country.isEmpty()){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_Id(idAccount)));
         }
-        else if (shop.isEmpty() && country.isEmpty()){
+        else if (ibanCreditor.isEmpty() && country.isEmpty()){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategory(idAccount, category)));
         }
         else if (category.isEmpty() && country.isEmpty()){
-            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndShop(idAccount, shop)));
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndIbancreditor(idAccount, ibanCreditor)));
         }
-        else if (category.isEmpty() && shop.isEmpty()){
+        else if (category.isEmpty() && ibanCreditor.isEmpty()){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCountry(idAccount, country)));
         }
         else if (country.isEmpty()){
-            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndShop(idAccount, category, shop)));
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndIbancreditor(idAccount, category, ibanCreditor)));
         }
-        else if (shop.isEmpty()){
+        else if (ibanCreditor.isEmpty()){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndCountry(idAccount, category, country)));
         }
         else if (category.isEmpty()){
-            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndShopAndCountry(idAccount, shop, country)));
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndIbancreditorAndCountry(idAccount, ibanCreditor, country)));
         }
         else {
-            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndShopAndCountry(idAccount, category, shop, country)));
+            return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndIbancreditorAndCountry(idAccount, category, ibanCreditor, country)));
         }
     }
 
@@ -98,12 +95,13 @@ public class OperationRepresentation {
                     operation.getCategory(),
                     operation.getAmount(),
                     operation.getRate(),
-                    new Date(),
-                    operation.getShop(),
+                    operation.getDate(),
+                    operation.getIbancreditor(),
                     operation.getCountry()
             );
             Operation saved = or.save(operation2Save);
             URI location = linkTo(OperationRepresentation.class).slash(saved.getId()).toUri();
+
             return ResponseEntity.created(location).build();
         }
         else {
@@ -112,8 +110,8 @@ public class OperationRepresentation {
     }
 
     //POST one OPERATION of one CARD (payment in shop by code)
-    public ResponseEntity<?> paymentByCode(String idAccount, String numCard, @RequestBody @Valid OperationInput operation)  {
-        ResponseEntity<?> response = checkingPaymentByCode(idAccount, numCard, operation);
+    public ResponseEntity<?> paymentByCode(String idAccount, String numCard, String code, @RequestBody @Valid OperationInput operation)  {
+        ResponseEntity<?> response = checkingPaymentByCode(idAccount, numCard, code, operation);
         if (response.getStatusCode() == HttpStatus.OK) {
             Operation operation2Save = new Operation(
                     UUID.randomUUID().toString(),
@@ -123,8 +121,8 @@ public class OperationRepresentation {
                     operation.getCategory(),
                     operation.getAmount(),
                     operation.getRate(),
-                    new Date(),
-                    operation.getShop(),
+                    operation.getDate(),
+                    operation.getIbancreditor(),
                     operation.getCountry()
             );
             Operation saved = or.save(operation2Save);
@@ -148,8 +146,8 @@ public class OperationRepresentation {
                     operation.getCategory(),
                     operation.getAmount(),
                     operation.getRate(),
-                    new Date(),
-                    operation.getShop(),
+                    operation.getDate(),
+                    operation.getIbancreditor(),
                     operation.getCountry()
             );
             Operation saved = or.save(operation2Save);
@@ -162,8 +160,8 @@ public class OperationRepresentation {
     }
 
     //POST one OPERATION of one CARD (payment online)
-    public ResponseEntity<?> paymentOnline(String idAccount, String numCard, @RequestBody @Valid OperationInput operation)  {
-        ResponseEntity<?> response = checkingPaymentOnline(idAccount, numCard, operation);
+    public ResponseEntity<?> paymentOnline(String idAccount, String numCard, String crypto, @RequestBody @Valid OperationInput operation)  {
+        ResponseEntity<?> response = checkingPaymentOnline(idAccount, numCard, crypto, operation);
         if (response.getStatusCode() == HttpStatus.OK) {
             Operation operation2Save = new Operation(
                     UUID.randomUUID().toString(),
@@ -173,8 +171,8 @@ public class OperationRepresentation {
                     operation.getCategory(),
                     operation.getAmount(),
                     operation.getRate(),
-                    new Date(),
-                    operation.getShop(),
+                    operation.getDate(),
+                    operation.getIbancreditor(),
                     operation.getCountry()
             );
             Operation saved = or.save(operation2Save);
@@ -190,6 +188,7 @@ public class OperationRepresentation {
         Account account = ar.findById(idAccount).get();
         //amount verification
         if (account.getAmount() >= operation.getAmount()){
+            balancingOfAccounts(account, operation.getIbancreditor(), operation.getAmount(), operation.getRate());
             return new ResponseEntity<>("Validated operation", HttpStatus.OK);
         }
         else {
@@ -197,11 +196,11 @@ public class OperationRepresentation {
         }
     }
 
-    private ResponseEntity<?> checkingPaymentByCode(String idAccount, String numCard, @Valid OperationInput operation){
+    private ResponseEntity<?> checkingPaymentByCode(String idAccount, String numCard, String code, @Valid OperationInput operation){
         Account account = ar.getById(idAccount);
         Card card = cr.findByNumber(numCard).get();
         //code verification
-        if (card.getCode().equals(operation.getCard().getCode())){
+        if (card.getCode().equals(code)){
             return PaymentInShopVerification(account, card, operation);
         }
         else {
@@ -213,7 +212,7 @@ public class OperationRepresentation {
         Account account = ar.getById(idAccount);
         Card card = cr.findByNumber(numCard).get();
         //contactless verification
-        if (operation.getCard().isContactless()){
+        if (card.isContactless()){
             return PaymentInShopVerification(account, card, operation);
         }
         else {
@@ -221,11 +220,11 @@ public class OperationRepresentation {
         }
     }
 
-    private ResponseEntity<?> checkingPaymentOnline(String idAccount, String numCard, @Valid OperationInput operation){
+    private ResponseEntity<?> checkingPaymentOnline(String idAccount, String numCard, String crypto, @Valid OperationInput operation){
         Account account = ar.getById(idAccount);
         Card card = cr.findByNumber(numCard).get();
         //cryptogram verification
-        if (card.getCryptogram().equals(operation.getCard().getCryptogram())){
+        if (card.getCryptogram().equals(crypto)){
             //expiration date verification
             if (card.getExpiration().after(operation.getDate())){
                 //blocked verification
@@ -235,9 +234,10 @@ public class OperationRepresentation {
                         //virtual verification
                         if (virtualVerif(account, card)) {
                             //amount verification
-                            if (account.getAmount() >= operation.getAmount()) {
+                            if (account.getAmount() >= operation.getAmount()*operation.getRate()) {
                                 //cap verification
-                                if ((card.getCap() - sumAmountOperation30Days(account, card)) >= operation.getAmount()) {
+                                if ((card.getCap() - sumAmountOperation30Days(account, card)) >= operation.getAmount()*operation.getRate()) {
+                                    balancingOfAccounts(account, operation.getIbancreditor(), operation.getAmount(), operation.getRate());
                                     return new ResponseEntity<>("Validated operation", HttpStatus.OK);
                                 }
                                 else {
@@ -279,9 +279,10 @@ public class OperationRepresentation {
                     //virtual verification
                     if (!card.isVirtual()) {
                         //amount verification
-                        if (account.getAmount() >= operation.getAmount()) {
+                        if (account.getAmount() >= operation.getAmount()*operation.getRate()) {
                             //cap verification
-                            if ((card.getCap() - sumAmountOperation30Days(account, card)) >= operation.getAmount()) {
+                            if ((card.getCap() - sumAmountOperation30Days(account, card)) >= operation.getAmount()*operation.getRate()) {
+                                balancingOfAccounts(account, operation.getIbancreditor(), operation.getAmount(), operation.getRate());
                                 return new ResponseEntity<>("Validated operation", HttpStatus.OK);
                             }
                             else {
@@ -344,9 +345,22 @@ public class OperationRepresentation {
         Date date = new Date();
         for (Operation op:operationsCard) {
             if ((date.getTime() - op.getDate().getTime())/(1000*60*60*24) <= 30) {
-                sumAmountOperations += op.getAmount();
+                sumAmountOperations += (op.getAmount() * op.getRate());
             }
         }
         return sumAmountOperations;
+    }
+
+    private void balancingOfAccounts(Account accountDebtor, String ibanAccountCreditor, Double amount, Double rate) {
+        if (ar.existsByIban(ibanAccountCreditor)){
+            Account accountCreditor = ar.findByIban(ibanAccountCreditor);
+            changeAmountAccountByOperation(accountCreditor, amount);
+        }
+        changeAmountAccountByOperation(accountDebtor, -(amount*rate));
+    }
+
+    private void changeAmountAccountByOperation(Account account, Double amountDiff) {
+        account.setAmount(account.getAmount() + amountDiff);
+        ar.save(account);
     }
 }

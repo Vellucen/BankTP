@@ -15,10 +15,10 @@ import java.util.Date;
 public class AccountInput {
 
     @Size(min = 2)
-    @Pattern(regexp = "[A-Z][0-9]+")
+    @Pattern(regexp = "[A-Z][a-z]+")
     private String firstname;
     @Size(min = 2)
-    @Pattern(regexp = "[A-Z][0-9]+")
+    @Pattern(regexp = "[A-Z][a-z]+")
     private String lastname;
     @Past
     private Date birthdate;
@@ -32,7 +32,4 @@ public class AccountInput {
     @Pattern(regexp = "[0-9]+")
     private String phonenumber;
     private String secret;
-    @Size(min = 27, max = 27)
-    @Pattern(regexp = "[A-Z]{2}[0-9]+")
-    private String iban;
 }

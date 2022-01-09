@@ -2,18 +2,16 @@ package fr.ul.miage.bank.boundaries;
 
 import fr.ul.miage.bank.assemblers.BankAccountAssembler;
 import fr.ul.miage.bank.entities.*;
-import org.springframework.util.DigestUtils;
-import org.springframework.util.ReflectionUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.hateoas.server.ExposesResourceFor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
-import java.lang.reflect.Field;
 import java.net.URI;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import javax.transaction.Transactional;
@@ -26,14 +24,12 @@ public class AccountRepresentation {
 
     private final AccountResource ar;
     private final BankAccountAssembler assembler;
-    private final AccountValidator validator;
     private final CardRepresentation cards;
     private final OperationRepresentation operations;
 
-    public AccountRepresentation(AccountResource ar, BankAccountAssembler assembler, AccountValidator validator, CardRepresentation cards, OperationRepresentation operations) {
+    public AccountRepresentation(AccountResource ar, BankAccountAssembler assembler, CardRepresentation cards, OperationRepresentation operations) {
         this.ar = ar;
         this.assembler = assembler;
-        this.validator = validator;
         this.cards = cards;
         this.operations = operations;
     }
@@ -96,7 +92,7 @@ public class AccountRepresentation {
     public ResponseEntity<?> saveAccount(@RequestBody @Valid AccountInput account)  {
         Account account2Save = new Account(
                 UUID.randomUUID().toString(),
-                0.00,
+                10.00,
                 account.getFirstname(),
                 account.getLastname(),
                 account.getBirthdate(),
@@ -104,7 +100,7 @@ public class AccountRepresentation {
                 account.getPassportnumber(),
                 account.getPhonenumber(),
                 hashSecret(account.getPassportnumber(), account.getSecret()),
-                account.getIban()
+                ibanGenerator()
         );
         Account saved = ar.save(account2Save);
         URI location = linkTo(AccountRepresentation.class).slash(saved.getId()).toUri();
@@ -118,27 +114,6 @@ public class AccountRepresentation {
         return cards.saveCard(idAccount, card);
     }
 
-    //POST one OPERATION (payment by card in shop use code)
-    @PostMapping(value = "/{accountId}/cards/{cardNum}operations/code")
-    @Transactional
-    public ResponseEntity<?> paymentByCardUseCode(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @RequestBody @Valid OperationInput operation) {
-        return operations.paymentByCode(idAccount, numCard, operation);
-    }
-
-    //POST one OPERATION (payment by card use contactless)
-    @PostMapping(value = "/{accountId}/cards/{cardNum}operations/contactless")
-    @Transactional
-    public ResponseEntity<?> paymentByCardUseContactless(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @RequestBody @Valid OperationInput operation) {
-        return operations.paymentUseContactless(idAccount, numCard, operation);
-    }
-
-    //POST one OPERATION (payment by card online)
-    @PostMapping(value = "/{accountId}/cards/{cardNum}operations/online")
-    @Transactional
-    public ResponseEntity<?> paymentByCardOnline(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @RequestBody @Valid OperationInput operation) {
-        return operations.paymentOnline(idAccount, numCard, operation);
-    }
-
     //POST one OPERATION (transfer)
     @PostMapping(value = "/{accountId}/operations")
     @Transactional
@@ -146,35 +121,70 @@ public class AccountRepresentation {
         return operations.transfer(idAccount, operation);
     }
 
-    // PATCH one ACCOUNT
-    @PatchMapping(value = "/{accountId}")
+    //PUT cap of one CARD
+    @PutMapping(value = "/{accountId}/cards/{cardNum}/cap/{newCap}")
     @Transactional
-    public ResponseEntity<?> updateAccountPartiel(@PathVariable("accountId") String accountId, @RequestBody Map<Object, Object> fields) {
-        Optional<Account> body = ar.findById(accountId);
-        if (body.isPresent()) {
-            Account account = body.get();
-            fields.forEach((f, v) -> {
-                Field field = ReflectionUtils.findField(Account.class, f.toString());
-                field.setAccessible(true);
-                ReflectionUtils.setField(field, account, v);
-            });
-            validator.validate(new AccountInput(account.getFirstname(),
-                    account.getLastname(), account.getBirthdate(), account.getCountry(), account.getPassportnumber(), account.getPhonenumber(), account.getSecret(), account.getIban()));
-            account.setId(accountId);
-            ar.save(account);
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<?> updateCapOfCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @PathVariable("newCap") Double newCap) {
+        return cards.updateCapCard(idAccount, numCard, newCap);
     }
 
-    //PATCH one CARD
-    @PatchMapping(value = "/{accountId}/cards/{cardNum}")
+    //PUT blocked of one CARD
+    @PutMapping(value = "/{accountId}/cards/{cardNum}/blocked")
     @Transactional
-    public ResponseEntity<?> updateCardPartiel(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard, @RequestBody Map<Object, Object> fields) {
-        return cards.updateCardPartiel(idAccount, numCard, fields);
+    public ResponseEntity<?> updateBlockedOfCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
+        return cards.updateBlockedCard(idAccount, numCard);
+    }
+
+    //PUT location of one CARD
+    @PutMapping(value = "/{accountId}/cards/{cardNum}/location")
+    @Transactional
+    public ResponseEntity<?> updateLocationOfCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
+        return cards.updateLocationCard(idAccount, numCard);
+    }
+
+    //PUT contactless of one CARD
+    @PutMapping(value = "/{accountId}/cards/{cardNum}/contactless")
+    @Transactional
+    public ResponseEntity<?> updateContactlessOfCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
+        return cards.updateContactlessCard(idAccount, numCard);
+    }
+
+    //PUT virtual of one CARD
+    @PutMapping(value = "/{accountId}/cards/{cardNum}/virtual")
+    @Transactional
+    public ResponseEntity<?> updateVirtualOfCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
+        return cards.updateVirtualCard(idAccount, numCard);
+    }
+
+    // PUT amount of one ACCOUNT
+    @PutMapping(value = "/{accountId}/amount/{moneyAdded}")
+    @Transactional
+    public ResponseEntity<?> updateAmountOfAccount(@PathVariable("accountId") String idAccount,@PathVariable("moneyAdded") Double moneyAdded) {
+        if (moneyAdded>0.00) {
+            Account account = ar.getById(idAccount);
+            account.setAmount(account.getAmount() + moneyAdded);
+            Optional<Account> body = Optional.ofNullable(account);
+            if (!body.isPresent()) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (!ar.existsById(idAccount)) {
+                return ResponseEntity.notFound().build();
+            }
+            account.setId(idAccount);
+            Account result = ar.save(account);
+            return ResponseEntity.ok().build();
+        }
+        else {
+            return new ResponseEntity<>("Negatives or null values not allowed", HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     private String hashSecret(String numPassport, String secret){
         return org.apache.commons.codec.digest.DigestUtils.sha256(numPassport + secret).toString();
+    }
+
+    private String ibanGenerator () {
+        return "FR55" + RandomStringUtils.randomNumeric(23);
     }
 }
