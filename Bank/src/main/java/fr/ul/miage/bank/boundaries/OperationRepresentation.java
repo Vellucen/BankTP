@@ -45,25 +45,25 @@ public class OperationRepresentation {
     //GET all OPERATIONS of one ACCOUNT and filtered by PARAMS
     public ResponseEntity<?> getAllOperationsOfOneAccount(String idAccount, String category, String ibanCreditor, String country) {
 
-        if (category.isEmpty() && ibanCreditor.isEmpty() && country.isEmpty()){
+        if ((category == null || category.isEmpty()) && (ibanCreditor == null || ibanCreditor.isEmpty()) && (country == null || country.isEmpty())){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_Id(idAccount)));
         }
-        else if (ibanCreditor.isEmpty() && country.isEmpty()){
+        else if ((ibanCreditor == null || ibanCreditor.isEmpty()) && (country == null || country.isEmpty())){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategory(idAccount, category)));
         }
-        else if (category.isEmpty() && country.isEmpty()){
+        else if ((category == null || category.isEmpty()) && (country == null || country.isEmpty())){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndIbancreditor(idAccount, ibanCreditor)));
         }
-        else if (category.isEmpty() && ibanCreditor.isEmpty()){
+        else if ((category == null || category.isEmpty()) && (ibanCreditor == null || ibanCreditor.isEmpty())){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCountry(idAccount, country)));
         }
-        else if (country.isEmpty()){
+        else if (country == null || country.isEmpty()){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndIbancreditor(idAccount, category, ibanCreditor)));
         }
-        else if (ibanCreditor.isEmpty()){
+        else if (ibanCreditor == null || ibanCreditor.isEmpty()){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndCategoryAndCountry(idAccount, category, country)));
         }
-        else if (category.isEmpty()){
+        else if (category == null || category.isEmpty()){
             return ResponseEntity.ok(assembler.toCollectionModel(or.findByAccount_IdAndIbancreditorAndCountry(idAccount, ibanCreditor, country)));
         }
         else {

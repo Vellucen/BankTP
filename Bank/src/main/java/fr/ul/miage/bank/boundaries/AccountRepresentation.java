@@ -149,13 +149,6 @@ public class AccountRepresentation {
         return cards.updateContactlessCard(idAccount, numCard);
     }
 
-    //PUT virtual of one CARD
-    @PutMapping(value = "/{accountId}/cards/{cardNum}/virtual")
-    @Transactional
-    public ResponseEntity<?> updateVirtualOfCard(@PathVariable("accountId") String idAccount, @PathVariable("cardNum") String numCard) {
-        return cards.updateVirtualCard(idAccount, numCard);
-    }
-
     // PUT amount of one ACCOUNT
     @PutMapping(value = "/{accountId}/amount/{moneyAdded}")
     @Transactional

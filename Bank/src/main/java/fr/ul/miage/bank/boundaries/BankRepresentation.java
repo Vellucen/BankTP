@@ -37,7 +37,7 @@ public class BankRepresentation {
     }
 
     //POST one OPERATION (payment by card online)
-    @PostMapping(value = "/{cardNum}/online/{cardCrypto}/")
+    @PostMapping(value = "/{cardNum}/online/{cardCrypto}")
     @Transactional
     public ResponseEntity<?> paymentByCardOnline(@PathVariable("cardNum") String numCard, @PathVariable("cardCrypto") String cryptoCard, @RequestBody @Valid OperationInput operation) {
         String idAccount = cards.findByNumber(numCard).get().getAccount().getId();

@@ -18,4 +18,5 @@ public class CardInput {
     private String code;
     @Positive
     private Double cap;
+    private Boolean virtual;
 }

@@ -60,7 +60,12 @@ public class CardRepresentation {
     //POST one CARD
     public ResponseEntity<?> saveCard(String idAccount, CardInput card)  {
         Date expirationDate = new Date();
-        expirationDate.setYear(expirationDate.getYear()+4);
+        if (card.getVirtual()) {
+            expirationDate.setHours(expirationDate.getHours()+(15*24));
+        }
+        else {
+            expirationDate.setYear(expirationDate.getYear()+4);
+        }
         Card card2Save = new Card(
                 UUID.randomUUID().toString(),
                 ar.getById(idAccount),
@@ -72,7 +77,7 @@ public class CardRepresentation {
                 FALSE,
                 FALSE,
                 FALSE,
-                FALSE
+                card.getVirtual()
         );
         Card saved = cr.save(card2Save);
         URI location = linkTo(CardRepresentation.class).slash(saved.getId()).toUri();
@@ -108,14 +113,6 @@ public class CardRepresentation {
         Card card = cr.findByNumber(numCard).get();
         String idCard = card.getId();
         card.setContactless(!card.isContactless());
-        return updateCard(idCard, card);
-    }
-
-    //PUT change virtual Card
-    public ResponseEntity<?> updateVirtualCard(String idAccount, String numCard) {
-        Card card = cr.findByNumber(numCard).get();
-        String idCard = card.getId();
-        card.setVirtual(!card.isVirtual());
         return updateCard(idCard, card);
     }
 
