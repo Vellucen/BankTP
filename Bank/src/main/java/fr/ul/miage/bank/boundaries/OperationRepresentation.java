@@ -187,7 +187,7 @@ public class OperationRepresentation {
     private ResponseEntity<?> checkingTransfer(String idAccount, @Valid OperationInput operation){
         Account account = ar.findById(idAccount).get();
         //amount verification
-        if (account.getAmount() >= operation.getAmount()){
+        if (account.getAmount() >= operation.getAmount()*operation.getRate()){
             balancingOfAccounts(account, operation.getIbancreditor(), operation.getAmount(), operation.getRate());
             return new ResponseEntity<>("Validated operation", HttpStatus.OK);
         }
@@ -249,7 +249,7 @@ public class OperationRepresentation {
                             }
                         }
                         else {
-                            return new ResponseEntity<>("Virtual not activated", HttpStatus.BAD_REQUEST);
+                            return new ResponseEntity<>("Virtual card expired", HttpStatus.BAD_REQUEST);
                         }
                     }
                     else {
@@ -265,7 +265,7 @@ public class OperationRepresentation {
             }
         }
         else {
-            return new ResponseEntity<>("Validated operation", HttpStatus.OK);
+            return new ResponseEntity<>("Bad cryptogram", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -354,7 +354,7 @@ public class OperationRepresentation {
     private void balancingOfAccounts(Account accountDebtor, String ibanAccountCreditor, Double amount, Double rate) {
         if (ar.existsByIban(ibanAccountCreditor)){
             Account accountCreditor = ar.findByIban(ibanAccountCreditor);
-            changeAmountAccountByOperation(accountCreditor, amount);
+            changeAmountAccountByOperation(accountCreditor, amount*rate);
         }
         changeAmountAccountByOperation(accountDebtor, -(amount*rate));
     }
