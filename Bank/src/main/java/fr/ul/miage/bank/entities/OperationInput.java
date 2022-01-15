@@ -3,7 +3,6 @@ package fr.ul.miage.bank.entities;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.*;
 import java.util.Date;
@@ -19,9 +18,6 @@ public class OperationInput {
     private String category;
     @Positive
     private Double amount;
-    @Positive
-    private Double rate;
-    @PastOrPresent
     private Date date;
     @NotNull
     @Size(min = 27, max = 27)

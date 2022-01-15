@@ -24,7 +24,7 @@ public class PaymentRepresentation {
     @Transactional
     public ResponseEntity<?> paymentByCardUseCode (@PathVariable("amount") Double amount, @PathVariable("cardNum") String numCard, @PathVariable("cardCode") String cardCode) {
         Payment payment = new Payment(amount);
-        String postUrl = "http://localhost:8080/payment/" + numCard + "/code/" + cardCode;
+        String postUrl = "http://localhost:8082/payment/" + numCard + "/code/" + cardCode;
         return sendPaymentToBank(postUrl, payment);
     }
 
@@ -33,7 +33,7 @@ public class PaymentRepresentation {
     @Transactional
     public ResponseEntity<?> paymentByCardUseContactless (@PathVariable("amount") Double amount, @PathVariable("cardNum") String numCard) {
         Payment payment = new Payment(amount);
-        String postUrl = "http://localhost:8080/payment/" + numCard + "/contactless";
+        String postUrl = "http://localhost:8082/payment/" + numCard + "/contactless";
         return sendPaymentToBank(postUrl, payment);
     }
 
@@ -43,7 +43,7 @@ public class PaymentRepresentation {
     @Transactional
     public ResponseEntity<?> paymentByCardUseContactless (@PathVariable("amount") Double amount, @PathVariable("cardNum") String numCard, @PathVariable("cardCrypto") String cardCrypto) {
         Payment payment = new Payment(amount);
-        String postUrl = "http://localhost:8080/payment/" + numCard + "/online/" + cardCrypto;
+        String postUrl = "http://localhost:8082/payment/" + numCard + "/online/" + cardCrypto;
         return sendPaymentToBank(postUrl, payment);
     }
 
@@ -55,7 +55,7 @@ public class PaymentRepresentation {
         post.setEntity(new StringEntity(json));
         post.setHeader("Accept", "application/json");
         post.setHeader("Content-Type", "application/json");
-        HttpResponse  response = httpClient.execute(post);
+        HttpResponse response = httpClient.execute(post);
         String reasonPhrase = new String(response.getEntity().getContent().readAllBytes(), StandardCharsets.UTF_8);
         return new ResponseEntity<>(reasonPhrase, HttpStatus.valueOf(response.getStatusLine().getStatusCode()));
     }

@@ -85,20 +85,19 @@ public class OperationRepresentation {
 
     //POST one OPERATION of one ACCOUNT (transfer)
     public ResponseEntity<?> transfer(String idAccount, @RequestBody @Valid OperationInput operation)  {
-        ResponseEntity<?> response = checkingTransfer(idAccount, operation);
+        Operation operation2Save = new Operation(
+                UUID.randomUUID().toString(),
+                ar.getById(idAccount),
+                null,
+                operation.getWording(),
+                operation.getCategory(),
+                operation.getAmount(),
+                operation.getDate(),
+                operation.getIbancreditor(),
+                operation.getCountry()
+        );
+        ResponseEntity<?> response = checkingTransfer(idAccount, operation2Save);
         if (response.getStatusCode() == HttpStatus.OK) {
-            Operation operation2Save = new Operation(
-                    UUID.randomUUID().toString(),
-                    ar.getById(idAccount),
-                    null,
-                    operation.getWording(),
-                    operation.getCategory(),
-                    operation.getAmount(),
-                    operation.getRate(),
-                    operation.getDate(),
-                    operation.getIbancreditor(),
-                    operation.getCountry()
-            );
             Operation saved = or.save(operation2Save);
             URI location = linkTo(OperationRepresentation.class).slash(saved.getId()).toUri();
 
@@ -111,20 +110,19 @@ public class OperationRepresentation {
 
     //POST one OPERATION of one CARD (payment in shop by code)
     public ResponseEntity<?> paymentByCode(String idAccount, String numCard, String code, @RequestBody @Valid OperationInput operation)  {
-        ResponseEntity<?> response = checkingPaymentByCode(idAccount, numCard, code, operation);
+        Operation operation2Save = new Operation(
+                UUID.randomUUID().toString(),
+                ar.getById(idAccount),
+                cr.findByNumber(numCard).get(),
+                operation.getWording(),
+                operation.getCategory(),
+                operation.getAmount(),
+                operation.getDate(),
+                operation.getIbancreditor(),
+                operation.getCountry()
+        );
+        ResponseEntity<?> response = checkingPaymentByCode(idAccount, numCard, code, operation2Save);
         if (response.getStatusCode() == HttpStatus.OK) {
-            Operation operation2Save = new Operation(
-                    UUID.randomUUID().toString(),
-                    ar.getById(idAccount),
-                    cr.findByNumber(numCard).get(),
-                    operation.getWording(),
-                    operation.getCategory(),
-                    operation.getAmount(),
-                    operation.getRate(),
-                    operation.getDate(),
-                    operation.getIbancreditor(),
-                    operation.getCountry()
-            );
             Operation saved = or.save(operation2Save);
             URI location = linkTo(OperationRepresentation.class).slash(saved.getId()).toUri();
             return ResponseEntity.created(location).build();
@@ -136,20 +134,20 @@ public class OperationRepresentation {
 
     //POST one OPERATION of one CARD (payment in shop use contactless)
     public ResponseEntity<?> paymentUseContactless(String idAccount, String numCard, @RequestBody @Valid OperationInput operation)  {
-        ResponseEntity<?> response = checkingPaymentUseContactless(idAccount, numCard, operation);
+        Operation operation2Save = new Operation(
+                UUID.randomUUID().toString(),
+                ar.getById(idAccount),
+                cr.findByNumber(numCard).get(),
+                operation.getWording(),
+                operation.getCategory(),
+                operation.getAmount(),
+                operation.getDate(),
+                operation.getIbancreditor(),
+                operation.getCountry()
+        );
+        ResponseEntity<?> response = checkingPaymentUseContactless(idAccount, numCard, operation2Save);
         if (response.getStatusCode() == HttpStatus.OK) {
-            Operation operation2Save = new Operation(
-                    UUID.randomUUID().toString(),
-                    ar.getById(idAccount),
-                    cr.findByNumber(numCard).get(),
-                    operation.getWording(),
-                    operation.getCategory(),
-                    operation.getAmount(),
-                    operation.getRate(),
-                    operation.getDate(),
-                    operation.getIbancreditor(),
-                    operation.getCountry()
-            );
+
             Operation saved = or.save(operation2Save);
             URI location = linkTo(OperationRepresentation.class).slash(saved.getId()).toUri();
             return ResponseEntity.created(location).build();
@@ -161,20 +159,19 @@ public class OperationRepresentation {
 
     //POST one OPERATION of one CARD (payment online)
     public ResponseEntity<?> paymentOnline(String idAccount, String numCard, String crypto, @RequestBody @Valid OperationInput operation)  {
-        ResponseEntity<?> response = checkingPaymentOnline(idAccount, numCard, crypto, operation);
+        Operation operation2Save = new Operation(
+                UUID.randomUUID().toString(),
+                ar.getById(idAccount),
+                cr.findByNumber(numCard).get(),
+                operation.getWording(),
+                operation.getCategory(),
+                operation.getAmount(),
+                operation.getDate(),
+                operation.getIbancreditor(),
+                operation.getCountry()
+        );
+        ResponseEntity<?> response = checkingPaymentOnline(idAccount, numCard, crypto, operation2Save);
         if (response.getStatusCode() == HttpStatus.OK) {
-            Operation operation2Save = new Operation(
-                    UUID.randomUUID().toString(),
-                    ar.getById(idAccount),
-                    cr.findByNumber(numCard).get(),
-                    operation.getWording(),
-                    operation.getCategory(),
-                    operation.getAmount(),
-                    operation.getRate(),
-                    operation.getDate(),
-                    operation.getIbancreditor(),
-                    operation.getCountry()
-            );
             Operation saved = or.save(operation2Save);
             URI location = linkTo(OperationRepresentation.class).slash(saved.getId()).toUri();
             return ResponseEntity.created(location).build();
@@ -184,7 +181,7 @@ public class OperationRepresentation {
         }
     }
 
-    private ResponseEntity<?> checkingTransfer(String idAccount, @Valid OperationInput operation){
+    private ResponseEntity<?> checkingTransfer(String idAccount, Operation operation){
         Account account = ar.findById(idAccount).get();
         //amount verification
         if (account.getAmount() >= operation.getAmount()*operation.getRate()){
@@ -196,7 +193,7 @@ public class OperationRepresentation {
         }
     }
 
-    private ResponseEntity<?> checkingPaymentByCode(String idAccount, String numCard, String code, @Valid OperationInput operation){
+    private ResponseEntity<?> checkingPaymentByCode(String idAccount, String numCard, String code, Operation operation){
         Account account = ar.getById(idAccount);
         Card card = cr.findByNumber(numCard).get();
         //code verification
@@ -208,7 +205,7 @@ public class OperationRepresentation {
         }
     }
 
-    private ResponseEntity<?> checkingPaymentUseContactless(String idAccount, String numCard, @Valid OperationInput operation){
+    private ResponseEntity<?> checkingPaymentUseContactless(String idAccount, String numCard, Operation operation){
         Account account = ar.getById(idAccount);
         Card card = cr.findByNumber(numCard).get();
         //contactless verification
@@ -220,7 +217,7 @@ public class OperationRepresentation {
         }
     }
 
-    private ResponseEntity<?> checkingPaymentOnline(String idAccount, String numCard, String crypto, @Valid OperationInput operation){
+    private ResponseEntity<?> checkingPaymentOnline(String idAccount, String numCard, String crypto, Operation operation){
         Account account = ar.getById(idAccount);
         Card card = cr.findByNumber(numCard).get();
         //cryptogram verification
@@ -269,7 +266,7 @@ public class OperationRepresentation {
         }
     }
 
-    private ResponseEntity<?> PaymentInShopVerification(Account account, Card card, @Valid OperationInput operation) {
+    private ResponseEntity<?> PaymentInShopVerification(Account account, Card card, Operation operation) {
         //expiration date verification
         if (card.getExpiration().after(operation.getDate())){
             //blocked verification
@@ -310,7 +307,7 @@ public class OperationRepresentation {
         }
     }
 
-    private Boolean locationVerif(Account account, Card card, @Valid OperationInput operation) {
+    private Boolean locationVerif(Account account, Card card, Operation operation) {
         if (card.isLocation()){
             if (account.getCountry().equals(operation.getCountry())){
                 return true;

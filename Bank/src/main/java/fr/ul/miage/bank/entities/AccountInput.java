@@ -31,5 +31,4 @@ public class AccountInput {
     @Size(min = 10, max = 10)
     @Pattern(regexp = "[0-9]+")
     private String phonenumber;
-    private String secret;
 }

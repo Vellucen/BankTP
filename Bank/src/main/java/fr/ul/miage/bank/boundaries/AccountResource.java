@@ -7,4 +7,8 @@ public interface AccountResource extends JpaRepository<Account, String> {
     Account findByIban(String iban);
 
     boolean existsByIban(String iban);
+
+    boolean existsByFirstnameAndLastname(String firstname, String lastname);
+
+    Account findByFirstnameAndLastname(String firstname, String lastname);
 }

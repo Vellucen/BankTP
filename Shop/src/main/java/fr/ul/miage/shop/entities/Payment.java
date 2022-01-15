@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.io.Serializable;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
@@ -21,7 +20,6 @@ public class Payment implements Serializable {
     private String wording;
     private String category;
     private Double amount;
-    private Double rate;
     private Date date;
     private String ibancreditor;
     private String country;
@@ -31,11 +29,9 @@ public class Payment implements Serializable {
         this.wording = "Achat chez ShopyShop";
         this.category = "Loisir";
         this.amount = amount;
-        this.rate = 1.00;
         this.date = new Date();
         this.ibancreditor = "FR5571264259886310520048352";
         this.country = "FR";
-
     }
 
     public String toJson(){
@@ -44,7 +40,6 @@ public class Payment implements Serializable {
                 "\"wording\": \"" + this.wording + "\"," +
                 "\"category\": \"" + this.category + "\"," +
                 "\"amount\": " + this.amount + "," +
-                "\"rate\": " + this.rate + "," +
                 "\"date\": \"" + sdf.format(this.date) + "\"," +
                 "\"ibancreditor\": \"" + this.ibancreditor + "\"," +
                 "\"country\": \"" + this.country + "\"" +

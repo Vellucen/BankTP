@@ -23,6 +23,5 @@ public class Account implements Serializable {
     private String country;
     private String passportnumber;
     private String phonenumber;
-    private String secret;
     private String iban;
 }
