@@ -17,7 +17,6 @@
     </parent>
     <modules>
         <module>Bank</module>
-        <module>Authentication</module>
         <module>Shop</module>
     </modules>
 

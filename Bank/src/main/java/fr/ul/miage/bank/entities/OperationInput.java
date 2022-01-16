@@ -21,7 +21,7 @@ public class OperationInput {
     private Date date;
     @NotNull
     @Size(min = 27, max = 27)
-    @Pattern(regexp = "FR55[0-9]{23}")
+    @Pattern(regexp = "[A-Z]{2}[0-9]{25}")
     private String ibancreditor;
     @Size(min = 2, max = 2)
     @Pattern(regexp = "[A-Z]{2}")

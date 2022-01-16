@@ -351,7 +351,7 @@ public class OperationRepresentation {
     private void balancingOfAccounts(Account accountDebtor, String ibanAccountCreditor, Double amount, Double rate) {
         if (ar.existsByIban(ibanAccountCreditor)){
             Account accountCreditor = ar.findByIban(ibanAccountCreditor);
-            changeAmountAccountByOperation(accountCreditor, amount*rate);
+            changeAmountAccountByOperation(accountCreditor, amount);
         }
         changeAmountAccountByOperation(accountDebtor, -(amount*rate));
     }
